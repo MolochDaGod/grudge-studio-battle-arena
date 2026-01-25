@@ -3,41 +3,46 @@
 ## Prerequisites
 1. GitHub account (✅ Already created: https://github.com/MolochDaGod/grudge-studio-battle-arena)
 2. Vercel account (sign up at https://vercel.com)
-3. Neon PostgreSQL database (from Warlord-Crafting-Suite)
+3. MySQL database (Grudge Game DB)
+   - Host: 74.208.155.229
+   - Port: 3306
+   - Database: grudge_game
 4. Crossmint API key (optional, for wallet features)
 
 ## Database Setup
 
 ### 1. Run Database Migration
-Connect to your existing Grudge DB (Neon PostgreSQL) and run the migration:
+Connect to your MySQL database and run the migration:
 
 ```bash
-# Navigate to server directory
-cd server/migrations
+# Connect to MySQL database
+mysql -h 74.208.155.229 -P 3306 -u grudge_admin -p grudge_game
+# Enter password: Grudge2026!
 
-# Run the migration SQL file on your Neon database
-# You can do this via Neon Console SQL Editor or psql
+# Or use a MySQL client/GUI tool
 ```
 
 The migration creates the `battle_arena_stats` table:
 ```sql
 CREATE TABLE IF NOT EXISTS battle_arena_stats (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  account_id UUID NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
+  id CHAR(36) PRIMARY KEY DEFAULT (UUID()),
+  account_id CHAR(36) NOT NULL,
   total_kills BIGINT DEFAULT 0,
   total_deaths BIGINT DEFAULT 0,
   total_matches BIGINT DEFAULT 0,
-  total_playtime_minutes INTEGER DEFAULT 0,
-  highest_killstreak INTEGER DEFAULT 0,
+  total_playtime_minutes INT DEFAULT 0,
+  highest_killstreak INT DEFAULT 0,
   created_at BIGINT NOT NULL,
-  updated_at BIGINT NOT NULL
-);
+  updated_at BIGINT NOT NULL,
+  FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE,
+  INDEX idx_battle_arena_stats_account (account_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 ```
 
 ### 2. Verify Database Schema
-Ensure your Neon database has these tables (from Warlord-Crafting-Suite):
+Ensure your MySQL database has these tables:
 - `users` - User authentication
-- `accounts` - Game accounts
+- `accounts` - Game accounts  
 - `auth_tokens` - Session management
 - `battle_arena_stats` - Battle arena statistics (NEW)
 
@@ -71,7 +76,11 @@ vercel --prod
 ```
 
 **Environment Variables for Server:**
-- `DATABASE_URL` - Your Neon PostgreSQL connection string
+- `DB_HOST` - MySQL host (74.208.155.229)
+- `DB_PORT` - MySQL port (3306)
+- `DB_NAME` - Database name (grudge_game)
+- `DB_USER` - Database user (grudge_admin)
+- `DB_PASSWORD` - Database password
 - `CROSSMINT_API_KEY` - Crossmint API key (optional)
 - `CLIENT_URL` - URL of your deployed client (for CORS)
 - `PORT` - 2567 (default)
@@ -107,7 +116,11 @@ VITE_SERVER_URL=wss://your-server-url.vercel.app
 
 **Environment Variables:**
 ```
-DATABASE_URL=postgresql://user:password@host/database?sslmode=require
+DB_HOST=74.208.155.229
+DB_PORT=3306
+DB_NAME=grudge_game
+DB_USER=grudge_admin
+DB_PASSWORD=Grudge2026!
 CROSSMINT_API_KEY=your_crossmint_key
 CLIENT_URL=https://your-client-url.vercel.app
 PORT=2567
@@ -148,7 +161,11 @@ Check your Neon database to ensure:
 
 ### Server (.env)
 ```env
-DATABASE_URL=postgresql://user:password@host/database?sslmode=require
+DB_HOST=74.208.155.229
+DB_PORT=3306
+DB_NAME=grudge_game
+DB_USER=grudge_admin
+DB_PASSWORD=Grudge2026!
 CROSSMINT_API_KEY=your_crossmint_api_key_here
 PORT=2567
 NODE_ENV=production
@@ -169,14 +186,15 @@ VITE_SERVER_URL=wss://your-server-url.vercel.app
 - Verify CLIENT_URL environment variable is set
 
 ### Database Connection Fails
-- Verify DATABASE_URL is correct
-- Check Neon database is active
-- Ensure SSL mode is set to `require`
+- Verify MySQL host/port/credentials are correct
+- Check MySQL server is accessible
+- Ensure firewall allows connection from Vercel IPs
 
 ### Authentication Not Working
-- Check DATABASE_URL is pointing to Grudge DB
+- Check MySQL credentials are correct
 - Verify database migration was run
 - Check server logs for database errors
+- Ensure `users`, `accounts`, and `auth_tokens` tables exist
 
 ### Crossmint Wallet Not Created
 - Verify CROSSMINT_API_KEY is set
@@ -191,7 +209,7 @@ vercel logs your-server-url.vercel.app
 ```
 
 ### Database Queries
-Use Neon Console SQL Editor to check:
+Use MySQL client or GUI tool to check:
 ```sql
 -- Check users
 SELECT * FROM users ORDER BY created_at DESC LIMIT 10;
@@ -200,12 +218,12 @@ SELECT * FROM users ORDER BY created_at DESC LIMIT 10;
 SELECT * FROM battle_arena_stats ORDER BY updated_at DESC LIMIT 10;
 
 -- Check active tokens
-SELECT * FROM auth_tokens WHERE expires_at > EXTRACT(EPOCH FROM NOW()) * 1000 LIMIT 10;
+SELECT * FROM auth_tokens WHERE expires_at > UNIX_TIMESTAMP() * 1000 LIMIT 10;
 ```
 
 ## Support
 
 - GitHub Repository: https://github.com/MolochDaGod/grudge-studio-battle-arena
 - Vercel Documentation: https://vercel.com/docs
-- Neon Documentation: https://neon.tech/docs
+- MySQL Documentation: https://dev.mysql.com/doc/
 - Crossmint Documentation: https://docs.crossmint.com

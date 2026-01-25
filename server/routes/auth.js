@@ -1,7 +1,7 @@
 const express = require('express');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
-const sql = require('../db.js');
+const sql = require('../db.cjs');
 const { generateGrudgeId, updateLastLogin } = require('../auth.js');
 
 const router = express.Router();

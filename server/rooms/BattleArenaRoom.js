@@ -2,7 +2,7 @@ import colyseusPackage from 'colyseus';
 const { Room } = colyseusPackage;
 import { GameState } from './schema/GameState.js';
 const { verifyAuthToken, updateTokenUsage } = require('../auth.js');
-const sql = require('../db.js');
+const sql = require('../db.cjs');
 
 const WORLD_SIZE = 3200;
 const MAX_BULLET_DISTANCE = 800;

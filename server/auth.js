@@ -1,4 +1,4 @@
-const sql = require('./db.js');
+const sql = require('./db.cjs');
 
 /**
  * Verify auth token and return user data
